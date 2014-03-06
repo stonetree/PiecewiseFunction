@@ -9,6 +9,19 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <vector>
+#include <string>
+#include <map>
+#include <list>
+#include <iterator>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+typedef unsigned int ID;
 
 
 
