@@ -191,11 +191,53 @@ void initialSegments(vector<cPoint>& _pointSet, map<pair<ID,ID>,double>& _segmen
 	_segments.insert(make_pair(make_pair(_pointSet.begin()->getID(),(_pointSet.end() - 1)->getID()),Rkp));
 	return;
 }
+
+
+void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segments,list<cLine>& _lines)
+{
+	map<pair<ID,ID>,double>::iterator iter_segments;
+	int iter_id,startID,endID;
+	double gradient,constant;
+	int num = 0;
+	double sum_x,sum_y,sum_xy,sum_x2;	
+
+	_lines.clear();
+
+	for (iter_segments = _segments.begin();iter_segments != _segments.end();iter_segments++)
+	{
+		startID = _pointSet[(iter_segments->first).first].getID();
+		endID = _pointSet[(iter_segments->first).second].getID();
+		num = endID - startID + 1;
+		sum_x = sum_y = sum_xy = sum_x2 = 0.0;
+
+
+		for (iter_id = startID;iter_id <= endID;iter_id++)
+		{
+			sum_x += _pointSet[iter_id].getx();
+			sum_x2 += pow(_pointSet[iter_id].getx(),2);
+			sum_y += _pointSet[iter_id].gety();
+			sum_xy += _pointSet[iter_id].getx() * _pointSet[iter_id].gety();
+		}
+
+		gradient = (num * sum_xy - sum_x * sum_y)/(num * sum_x2 - pow(sum_x,2));
+		constant = (sum_x2 * sum_y - sum_x * sum_xy)/(num * sum_x2 - pow(sum_x,2));
+
+		_lines.push_back(cLine(gradient,constant));
+	}
+	
+	return;
+}
+
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//store the set of initial points reading from the input file 
 	vector<cPoint> pointSet;
 	vector<cPoint>::iterator iter_pointSet;
+
+	//store the lines
+	list<cLine> lines;
 
 	//Read the input file
 	/*Please name the input file as "input.txt"*/
@@ -220,6 +262,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	initialSegments(pointSet,segments);
 
 	splitSegment(pointSet,segments);
+
+	linearRegression(pointSet,segments,lines);
 
 	return 0;
 }
