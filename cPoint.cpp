@@ -24,7 +24,7 @@ cPoint& cPoint::operator=(const cPoint& _point)
 	return *this;
 }
 
-cPoint::cPoint(cPoint& _point)
+cPoint::cPoint(const cPoint& _point)
 {
 	this->operator=(_point);
 }

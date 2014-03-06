@@ -19,6 +19,11 @@ public:
 	void setConstant(double _constant){constant = _constant;}
 	double getConstant(void) const {return constant;}
 
+	void setStartPoint(const cPoint& _point){startPoint = _point;}
+	cPoint getStartPoint(void) const {return startPoint;}
+	void setEndPoint(const cPoint& _point){endPoint = _point;}
+	cPoint getEndPoint(void) const {return endPoint;}
+
 public:
 	bool operator==(const cLine& _line);
 

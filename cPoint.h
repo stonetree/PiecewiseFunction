@@ -26,7 +26,7 @@ public:
 
 public:
 	cPoint(double _x,double _y, bool _isEndPoint = false);
-	cPoint(cPoint& _point);
+	cPoint(const cPoint& _point);
 	cPoint& operator=(const cPoint& _point);
 	cPoint(void);
 	~cPoint(void);

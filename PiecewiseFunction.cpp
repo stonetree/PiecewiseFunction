@@ -193,7 +193,7 @@ void initialSegments(vector<cPoint>& _pointSet, map<pair<ID,ID>,double>& _segmen
 }
 
 
-void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segments,list<cLine>& _lines)
+void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segments,vector<cLine>& _lines)
 {
 	map<pair<ID,ID>,double>::iterator iter_segments;
 	int iter_id,startID,endID;
@@ -202,6 +202,12 @@ void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segmen
 	double sum_x,sum_y,sum_xy,sum_x2;	
 
 	_lines.clear();
+
+	//Insert a virtual line as the first line
+	//to simplify the calculation of line intersection
+	//where the virtual is y=b, where b is equal to the value of x of the first point 
+
+	_lines.push_back(cLine(0,_pointSet[_segments.begin()->first.first].getx()));
 
 	for (iter_segments = _segments.begin();iter_segments != _segments.end();iter_segments++)
 	{
@@ -224,10 +230,49 @@ void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segmen
 
 		_lines.push_back(cLine(gradient,constant));
 	}
+
+	//Insert a virtual line as the last line
+	//to simplify the calculation of line intersection
+	//where the virtual is y=b, where b is equal to the value of x of the last point 
+	
+	map<pair<ID,ID>,double>::reverse_iterator reiter_segments = _segments.rbegin();
+	_lines.push_back(cLine(0,_pointSet[reiter_segments->first.second].getx()));
 	
 	return;
 }
 
+void lineIntersection(vector<cPoint>& _pointSet,vector<cLine>& _lines)
+{
+	vector<cLine>::iterator iter_lines;
+
+	double x,y;
+
+	for (iter_lines = _lines.begin();iter_lines + 1 != _lines.end();iter_lines++)
+	{
+		x = y = 0.0;
+
+		if (iter_lines->getConstant() - (iter_lines + 1)->getConstant() == 0)
+		{
+			cout<<"Parallel lines have been found!!!"<<endl;
+			exit(-1);
+		}
+
+		x = -(iter_lines->getConstant() - (iter_lines + 1)->getConstant())/(iter_lines->getGradient() - (iter_lines + 1)->getGradient());
+		y = x * iter_lines->getGradient() + iter_lines->getConstant();
+
+		cPoint tem_point = cPoint(x,y);
+
+		iter_lines->setEndPoint(tem_point);
+		(iter_lines + 1)->setStartPoint(tem_point);
+	}
+
+	//Delete the two virtual lines being at the head and the tail of the set of lines
+	_lines.erase(_lines.begin());
+	_lines.erase(_lines.end() - 1);
+
+	return;
+
+}
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -237,7 +282,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	vector<cPoint>::iterator iter_pointSet;
 
 	//store the lines
-	list<cLine> lines;
+	vector<cLine> lines;
 
 	//Read the input file
 	/*Please name the input file as "input.txt"*/
@@ -264,6 +309,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	splitSegment(pointSet,segments);
 
 	linearRegression(pointSet,segments,lines);
+
+	lineIntersection(pointSet,lines);
+	
 
 	return 0;
 }
