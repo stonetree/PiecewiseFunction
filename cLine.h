@@ -18,7 +18,7 @@ public:
 	double getGradient(void) const {return gradient;}
 	void setConstant(double _constant){constant = _constant;}
 	double getConstant(void) const {return constant;}
-
+	
 	void setStartPoint(const cPoint& _point){startPoint = _point;}
 	cPoint getStartPoint(void) const {return startPoint;}
 	void setEndPoint(const cPoint& _point){endPoint = _point;}

@@ -5,7 +5,7 @@
 #include "cPoint.h"
 #include "cLine.h"
 
-const double Rkp_star = 0.8;
+const double Rkp_star = 0.99;
 
 int initialInputfile(vector<cPoint>& inputParameter)
 {
@@ -21,7 +21,7 @@ int initialInputfile(vector<cPoint>& inputParameter)
 	if (!inputFile)
 	{
 		cout<<"Unable to open input file!"<<endl;
-		return -2;
+		exit(1);
 	}
 
 	while(!inputFile.eof())
@@ -30,6 +30,8 @@ int initialInputfile(vector<cPoint>& inputParameter)
 		sscanf(buf,"%s %s\n",x, y);
 		inputParameter.push_back(cPoint(atof(x),atof(y)));
 	}
+
+	inputFile.close();
 
 	return 0;
 }
@@ -92,7 +94,16 @@ double calculateRkp(vector<cPoint>& _pointSet, ID _startID, ID _endID)
 	ss_tot = calculateSStot(_pointSet,_startID,_endID);
 	ss_err = calculateSSerr(_pointSet,_startID,_endID);
 
-	return 1 - ss_err/ss_tot;
+	if (ss_tot == 0)
+	{
+		return 1;
+	}
+	else
+	{
+		return 1 - ss_err/ss_tot;
+	}
+	
+
 }
 
 double findMiniRkp(map<pair<ID,ID>,double>& _segments,ID *_startID, ID *_endID)
@@ -121,6 +132,7 @@ void splitSubSegment(vector<cPoint>& _pointSet,ID _startID, ID _endID,map<pair<I
 	double max_distance = 0;
 	double tem_distance;
 	double rkp_seg_1, rkp_seg_2;
+	ID tem_end_id;
 	
 	double l_i = 0;
 	double y_1 = _pointSet[_startID].gety();
@@ -130,7 +142,7 @@ void splitSubSegment(vector<cPoint>& _pointSet,ID _startID, ID _endID,map<pair<I
 
 	map<pair<ID,ID>,double>::iterator iter_segments;
 
-
+	
 	//Find the point with longest distance
 	for (id_index = _startID;id_index <= _endID;id_index++)
 	{
@@ -158,7 +170,9 @@ void splitSubSegment(vector<cPoint>& _pointSet,ID _startID, ID _endID,map<pair<I
 		_segments.erase(iter_segments);
 
 		rkp_seg_1 = calculateRkp(_pointSet,_startID,id_found);
+
 		_segments.insert(make_pair(make_pair(_startID,id_found),rkp_seg_1));
+
 
 		rkp_seg_2 = calculateRkp(_pointSet,id_found,_endID);
 		_segments.insert(make_pair(make_pair(id_found,_endID),rkp_seg_2));
@@ -175,9 +189,10 @@ void splitSegment(vector<cPoint>& _pointSet, map<pair<ID,ID>,double>& _segments)
 
 	//Check whether the minimum rkp is achieved.
 	//If not, the segment that has minimum value of rkp will be split into two subsegments.
-	if (mini_rkp<=Rkp_star)
-	{
+	while(mini_rkp<=Rkp_star)
+	{		
 		splitSubSegment(_pointSet,startID,endID,_segments);
+		mini_rkp = findMiniRkp(_segments,&startID,&endID);
 	}
 		
 	return;
@@ -203,12 +218,6 @@ void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segmen
 
 	_lines.clear();
 
-	//Insert a virtual line as the first line
-	//to simplify the calculation of line intersection
-	//where the virtual is y=b, where b is equal to the value of x of the first point 
-
-	_lines.push_back(cLine(0,_pointSet[_segments.begin()->first.first].getx()));
-
 	for (iter_segments = _segments.begin();iter_segments != _segments.end();iter_segments++)
 	{
 		startID = _pointSet[(iter_segments->first).first].getID();
@@ -230,13 +239,6 @@ void linearRegression(vector<cPoint>& _pointSet,map<pair<ID,ID>,double>& _segmen
 
 		_lines.push_back(cLine(gradient,constant));
 	}
-
-	//Insert a virtual line as the last line
-	//to simplify the calculation of line intersection
-	//where the virtual is y=b, where b is equal to the value of x of the last point 
-	
-	map<pair<ID,ID>,double>::reverse_iterator reiter_segments = _segments.rbegin();
-	_lines.push_back(cLine(0,_pointSet[reiter_segments->first.second].getx()));
 	
 	return;
 }
@@ -247,6 +249,17 @@ void lineIntersection(vector<cPoint>& _pointSet,vector<cLine>& _lines)
 
 	double x,y;
 
+	//Set the START point
+	iter_lines = _lines.begin();
+	if(iter_lines->getGradient() == 0)
+	{
+		iter_lines->setStartPoint(cPoint(0,0));
+	}
+	else
+	{
+		iter_lines->setStartPoint(cPoint(_pointSet[0].getx(),iter_lines->getGradient() * _pointSet[0].getx() + iter_lines->getConstant()));
+	}
+	
 	for (iter_lines = _lines.begin();iter_lines + 1 != _lines.end();iter_lines++)
 	{
 		x = y = 0.0;
@@ -266,12 +279,39 @@ void lineIntersection(vector<cPoint>& _pointSet,vector<cLine>& _lines)
 		(iter_lines + 1)->setStartPoint(tem_point);
 	}
 
-	//Delete the two virtual lines being at the head and the tail of the set of lines
-	_lines.erase(_lines.begin());
-	_lines.erase(_lines.end() - 1);
+	//Set the LAST point
+	iter_lines = _lines.end() - 1;
+	iter_lines->setEndPoint(cPoint(_pointSet[_pointSet.size() - 1].getx(),iter_lines->getGradient() * _pointSet[_pointSet.size() - 1].getx() + iter_lines->getConstant()));
+
 
 	return;
 
+}
+
+void outputIntersection(vector<cLine>& _lines)
+{
+	ofstream outputFile;
+	vector<cLine>::iterator iter_lines;
+
+	outputFile.open("output.txt",ios::app);
+
+	if (!outputFile)
+	{
+		cout<<"Unable to locate the output file!!!"<<endl;
+		exit(1);
+	}
+
+	for (iter_lines = _lines.begin();iter_lines != _lines.end();iter_lines++)
+	{
+		cPoint tem_point(iter_lines->getStartPoint());
+		outputFile<<tem_point.getx()<<" "<<tem_point.gety()<<endl;
+	}
+
+	cPoint tem_last_point((_lines.end() - 1)->getEndPoint());
+	outputFile<<tem_last_point.getx()<<" "<<tem_last_point.gety()<<endl;
+
+	outputFile.close();
+	return;
 }
 
 
@@ -311,6 +351,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	linearRegression(pointSet,segments,lines);
 
 	lineIntersection(pointSet,lines);
+
+	outputIntersection(lines);
 	
 
 	return 0;
