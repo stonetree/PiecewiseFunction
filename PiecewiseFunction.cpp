@@ -5,7 +5,7 @@
 #include "cPoint.h"
 #include "cLine.h"
 
-const double Rkp_star = 0.99;
+double Rkp_star = 0.3;
 
 int initialInputfile(vector<cPoint>& inputParameter)
 {
@@ -315,8 +315,22 @@ void outputIntersection(vector<cLine>& _lines)
 }
 
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
+	//Read the input parameter
+	if (argc != 2)
+	{
+		cout<<"Incorrect number of parameters!!1"<<endl;
+		exit(1);
+	}
+	
+	if (atof(argv[1]) < 0 || atof(argv[1]) > 1)
+	{
+		cout<<"Incorrect ranges of the parameter!!!"<<endl;
+		exit(1);
+	}
+
+	Rkp_star = atof(argv[1]);
 	//store the set of initial points reading from the input file 
 	vector<cPoint> pointSet;
 	vector<cPoint>::iterator iter_pointSet;
