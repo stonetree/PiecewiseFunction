@@ -367,6 +367,8 @@ int main(int argc, char* argv[])
 	lineIntersection(pointSet,lines);
 
 	outputIntersection(lines);
+
+	cout<<"It's done!!"<<endl;
 	
 
 	return 0;
