@@ -16,7 +16,7 @@ int initialInputfile(vector<cPoint>& inputParameter)
 	char y[10];
 
 
-	char buf[30];
+	char buf[50];
 
 	if (!inputFile)
 	{
@@ -26,7 +26,7 @@ int initialInputfile(vector<cPoint>& inputParameter)
 
 	while(!inputFile.eof())
 	{
-		inputFile.getline(buf,19,'\n');
+		inputFile.getline(buf,50,'\n');
 		sscanf(buf,"%s %s\n",x, y);
 		inputParameter.push_back(cPoint(atof(x),atof(y)));
 	}
