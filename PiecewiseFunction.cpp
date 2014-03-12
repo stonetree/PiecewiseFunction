@@ -12,11 +12,11 @@ int initialInputfile(vector<cPoint>& inputParameter)
 
 	ifstream inputFile("input.txt");
 
-	char x[10];
-	char y[10];
+	char x[30];
+	char y[30];
 
 
-	char buf[50];
+	char buf[70];
 
 	if (!inputFile)
 	{
