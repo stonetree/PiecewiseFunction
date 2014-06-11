@@ -303,12 +303,14 @@ void outputIntersection(vector<cLine>& _lines)
 
 	for (iter_lines = _lines.begin();iter_lines != _lines.end();iter_lines++)
 	{
-		cPoint tem_point(iter_lines->getStartPoint());
-		outputFile<<tem_point.getx()<<" "<<tem_point.gety()<<endl;
+		cPoint tem_start_point(iter_lines->getStartPoint());
+		cPoint tem_end_point(iter_lines->getEndPoint());
+		outputFile<<tem_start_point.getx()<<" "<<tem_start_point.gety()<<" "<<tem_end_point.getx()\
+			<<" "<<tem_end_point.gety()<<" "<<iter_lines->getGradient()<<" "<<iter_lines->getConstant()<<endl;
 	}
 
-	cPoint tem_last_point((_lines.end() - 1)->getEndPoint());
-	outputFile<<tem_last_point.getx()<<" "<<tem_last_point.gety()<<endl;
+	//cPoint tem_last_point((_lines.end() - 1)->getEndPoint());
+	//outputFile<<tem_last_point.getx()<<" "<<tem_last_point.gety()<<endl;
 
 	outputFile.close();
 	return;
